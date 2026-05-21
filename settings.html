@@ -1,0 +1,75 @@
+<div id="oc_workbench_settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <div class="flex-container alignitemscenter margin0">
+                <b>OC Workbench</b>
+            </div>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+
+            <!-- 连接状态 -->
+            <div class="oc-status-bar">
+                <span id="oc_status_dot" class="oc-status-dot oc-status-unknown"></span>
+                <span id="oc_status_text">未连接</span>
+                <button id="oc_check_connection" class="menu_button menu_button_icon oc-btn-sm">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
+
+            <hr class="oc-divider" />
+
+            <!-- 主操作区 -->
+            <div id="oc_main_panel">
+                <button id="oc_enter_select_mode" class="menu_button menu_button_icon oc-btn-full">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>选择消息范围</span>
+                </button>
+            </div>
+
+            <!-- 候选记忆列表（提取后显示） -->
+            <div id="oc_candidates_panel" style="display:none;">
+                <div class="oc-panel-header">
+                    <span>候选记忆</span>
+                    <span id="oc_candidates_count" class="oc-badge">0</span>
+                </div>
+                <div id="oc_candidates_list"></div>
+                <div class="oc-actions">
+                    <button id="oc_commit_all" class="menu_button menu_button_icon oc-btn-full oc-btn-primary">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>全部确认写回</span>
+                    </button>
+                    <button id="oc_cancel_extract" class="menu_button oc-btn-full">
+                        取消
+                    </button>
+                </div>
+            </div>
+
+            <!-- 写回预览（确认前显示） -->
+            <div id="oc_preview_panel" style="display:none;">
+                <div class="oc-panel-header">
+                    <span>写回预览</span>
+                </div>
+                <div id="oc_preview_list"></div>
+                <div class="oc-actions">
+                    <button id="oc_confirm_commit" class="menu_button menu_button_icon oc-btn-full oc-btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>确认执行</span>
+                    </button>
+                    <button id="oc_cancel_commit" class="menu_button oc-btn-full">
+                        返回修改
+                    </button>
+                </div>
+            </div>
+
+            <hr class="oc-divider" />
+
+            <!-- 设置 -->
+            <div class="oc-setting-row">
+                <label for="oc_workbench_url">Workbench 地址</label>
+                <input id="oc_workbench_url" type="text" class="text_pole" value="http://127.0.0.1:3000" />
+            </div>
+
+        </div>
+    </div>
+</div>

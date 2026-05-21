@@ -1,0 +1,14 @@
+{
+    "display_name": "OC Workbench",
+    "loading_order": 10,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "luwu7375-droid",
+    "version": "0.1.0",
+    "homePage": "https://github.com/luwu7375-droid/oc_tavern_plugin",
+    "hooks": {
+        "activate": "init"
+    }
+}

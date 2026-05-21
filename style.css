@@ -1,0 +1,271 @@
+/* OC Workbench Extension Styles */
+
+.oc-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 0.85em;
+}
+
+.oc-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.oc-status-unknown { background: #888; }
+.oc-status-ok      { background: #4caf50; }
+.oc-status-error   { background: #f44336; }
+
+.oc-divider {
+    margin: 8px 0;
+    border: none;
+    border-top: 1px solid var(--SmartThemeBorderColor, #444);
+}
+
+.oc-btn-sm {
+    padding: 2px 6px !important;
+    font-size: 0.8em;
+    margin-left: auto;
+}
+
+.oc-btn-full {
+    width: 100%;
+    justify-content: center;
+    margin: 4px 0 !important;
+}
+
+.oc-btn-primary {
+    background: var(--SmartThemeBodyColor, #4a90d9) !important;
+    color: #fff !important;
+}
+
+.oc-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin: 8px 0 4px;
+}
+
+.oc-badge {
+    background: var(--SmartThemeBorderColor, #555);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+.oc-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.oc-setting-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 6px 0;
+    font-size: 0.85em;
+}
+
+/* 候选卡片 */
+.oc-candidate-card {
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 6px;
+    padding: 8px;
+    margin: 6px 0;
+    font-size: 0.85em;
+}
+
+.oc-candidate-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.oc-type-badge {
+    background: var(--SmartThemeBorderColor, #555);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.8em;
+}
+
+.oc-confidence {
+    font-size: 0.8em;
+    color: #888;
+    margin-left: auto;
+}
+
+.oc-candidate-title {
+    width: 100%;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+    color: inherit;
+    padding: 2px 0;
+    margin-bottom: 4px;
+    font-size: 1em;
+}
+
+.oc-candidate-content {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 4px;
+    color: inherit;
+    padding: 4px;
+    resize: vertical;
+    font-size: 0.95em;
+    min-height: 60px;
+}
+
+.oc-target-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    align-items: center;
+}
+
+.oc-target-label {
+    font-size: 0.8em;
+    color: #888;
+}
+
+.oc-target-toggle {
+    font-size: 0.78em;
+    padding: 1px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.oc-target-toggle.active {
+    background: var(--SmartThemeBodyColor, #4a90d9);
+    color: #fff;
+    border-color: transparent;
+}
+
+.oc-candidate-delete {
+    float: right;
+    font-size: 0.8em;
+    color: #888;
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+.oc-candidate-delete:hover {
+    color: #f44336;
+}
+
+/* 预览列表 */
+.oc-preview-item {
+    font-size: 0.85em;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #333);
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.oc-preview-item i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* 聊天界面叠加：选择模式 */
+.oc-select-mode .mes {
+    cursor: pointer;
+}
+
+.oc-select-mode .mes:hover .oc-msg-checkbox {
+    opacity: 1;
+}
+
+.oc-msg-checkbox {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    transform: none;
+    width: 16px;
+    height: 16px;
+    opacity: 0.4;
+    cursor: pointer;
+    accent-color: var(--SmartThemeBodyColor, #4a90d9);
+    transition: opacity 0.15s;
+    z-index: 10;
+}
+
+.oc-msg-checkbox.checked,
+.mes.oc-selected .oc-msg-checkbox {
+    opacity: 1;
+}
+
+.mes.oc-selected {
+    background: color-mix(in srgb, var(--SmartThemeBodyColor, #4a90d9) 12%, transparent) !important;
+    border-radius: 6px;
+}
+
+.oc-select-from-here {
+    font-size: 0.75em;
+    color: var(--SmartThemeBodyColor, #4a90d9);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.mes:hover .oc-select-from-here,
+#chat.oc-select-mode .mes:hover .oc-select-from-here {
+    opacity: 1;
+}
+
+/* 底部浮层 */
+#oc_select_floater {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--SmartThemeBlurTintColor, rgba(30,30,30,0.95));
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    border-radius: 24px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9em;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+#oc_select_floater .oc-floater-count {
+    color: #aaa;
+}
+
+#oc_select_floater .oc-floater-extract {
+    background: var(--SmartThemeBodyColor, #4a90d9);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 4px 14px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#oc_select_floater .oc-floater-cancel {
+    color: #888;
+    cursor: pointer;
+    font-size: 0.85em;
+}
