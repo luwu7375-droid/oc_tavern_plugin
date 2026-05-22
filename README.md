@@ -16,11 +16,13 @@ SillyTavern 插件，将对话记忆从 Tavern 同步回 [OC Workbench](https://
 
 ## 安装
 
-1. 在 SillyTavern 的插件目录下克隆本仓库：
-   ```bash
-   git clone https://github.com/luwu7375-droid/oc_tavern_plugin.git
+1. 在 SillyTavern 扩展面板中点击右上角的安装按钮，选择 **从 Git URL 安装**
+2. 在弹窗中输入：
    ```
-2. 重启 SillyTavern，在扩展面板启用 **OC Workbench**。
+   https://github.com/luwu7375-droid/oc_tavern_plugin
+   ```
+3. 点击 **Install just for me** 完成安装
+4. 重启 SillyTavern，在扩展面板启用 **OC Workbench**
 
 ## 配置
 
