@@ -10,6 +10,7 @@ const MODULE_NAME = 'oc_workbench';
 
 const DEFAULT_SETTINGS = {
     workbenchUrl: 'http://127.0.0.1:3000',
+    bridgeToken: '',
 };
 
 // ─── 状态 ────────────────────────────────────────────────────────────────────
@@ -32,6 +33,11 @@ function getSettings() {
 
 function getBaseUrl() {
     return (getSettings().workbenchUrl || 'http://127.0.0.1:3000').replace(/\/$/, '');
+}
+
+function getAuthHeaders() {
+    const token = getSettings().bridgeToken;
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 // ─── 连接状态 ─────────────────────────────────────────────────────────────────
@@ -208,14 +214,20 @@ async function onExtract() {
     showLoadingPanel('正在提取记忆…');
 
     try {
-        // 1. resolve 角色
-        const charName = context.name2;
-        if (!charName) throw new Error('无法获取当前角色名');
+        // 1. resolve 角色（支持群组）
+        let names;
+        if (context.groupId) {
+            const group = context.groups?.find(g => g.id === context.groupId);
+            names = group?.members?.map(m => m.name).filter(Boolean) ?? [];
+        } else {
+            names = context.name2 ? [context.name2] : [];
+        }
+        if (!names.length) throw new Error('无法获取当前角色名');
 
         const resolveRes = await fetch(`${getBaseUrl()}/api/tavern/characters/resolve`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ names: [charName] }),
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+            body: JSON.stringify({ names }),
         });
         if (!resolveRes.ok) throw new Error(`角色解析失败 (${resolveRes.status})`);
         const resolveData = await resolveRes.json();
@@ -227,12 +239,12 @@ async function onExtract() {
         const messages = selectedMessages.map(m => ({
             role: m.is_user ? 'user' : 'assistant',
             content: m.mes,
-            name: m.is_user ? undefined : charName,
+            name: m.is_user ? undefined : (m.name || context.name2),
         }));
 
         const extractRes = await fetch(`${getBaseUrl()}/api/tavern/memory/extract`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
             body: JSON.stringify({ characterIds: currentCharacterIds, messages }),
         });
         if (!extractRes.ok) throw new Error(`提取失败 (${extractRes.status})`);
@@ -391,7 +403,7 @@ async function onConfirmCommit() {
     try {
         const res = await fetch(`${getBaseUrl()}/api/tavern/memory/commit`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
             body: JSON.stringify({ characterIds: currentCharacterIds, candidates }),
         });
         if (!res.ok) throw new Error(`写回失败 (${res.status})`);
@@ -449,6 +461,7 @@ async function injectContext(characterIds) {
     try {
         const params = characterIds.map(id => `characterIds=${encodeURIComponent(id)}`).join('&');
         const res = await fetch(`${getBaseUrl()}/api/tavern/context/inject?${params}`, {
+            headers: { ...getAuthHeaders() },
             signal: AbortSignal.timeout(5000),
         });
         if (!res.ok) return;
@@ -495,27 +508,46 @@ async function injectContext(characterIds) {
 }
 
 async function onChatChanged() {
-    // 先清除上一次注入
     await clearInjectedContext();
 
     const context = getContext();
-    const charName = context.name2;
-    if (!charName) return;
+
+    // 群组聊天：收集所有成员名；单角色聊天：取 name2
+    let names;
+    if (context.groupId) {
+        const group = context.groups?.find(g => g.id === context.groupId);
+        names = group?.members?.map(m => m.name).filter(Boolean) ?? [];
+    } else {
+        names = context.name2 ? [context.name2] : [];
+    }
+    if (!names.length) return;
 
     try {
         const resolveRes = await fetch(`${getBaseUrl()}/api/tavern/characters/resolve`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ names: [charName] }),
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+            body: JSON.stringify({ names }),
             signal: AbortSignal.timeout(5000),
         });
         if (!resolveRes.ok) return;
         const resolveData = await resolveRes.json();
         if (resolveData.error || !resolveData.data) return;
 
-        const ids = Object.values(resolveData.data).map(c => c.id);
-        currentCharacterIds = ids;
-        await injectContext(ids);
+        const entries = Object.values(resolveData.data);
+        currentCharacterIds = entries.map(c => c.id);
+
+        const autoCreated = entries.filter(c => c.auto_created).map(c => c.name);
+        const notice = document.getElementById('oc_auto_created_notice');
+        if (notice) {
+            if (autoCreated.length) {
+                notice.textContent = `已自动创建角色：${autoCreated.join('、')}`;
+                notice.style.display = '';
+            } else {
+                notice.style.display = 'none';
+            }
+        }
+
+        await injectContext(currentCharacterIds);
     } catch (err) {
         console.warn('[OC Workbench] onChatChanged error:', err);
     }
@@ -532,10 +564,16 @@ async function init() {
     // 恢复保存的设置
     const settings = getSettings();
     $('#oc_workbench_url').val(settings.workbenchUrl);
+    $('#oc_bridge_token').val(settings.bridgeToken || '');
 
     // 绑定事件
     $('#oc_workbench_url').on('input', function () {
         getSettings().workbenchUrl = this.value.trim();
+        saveSettingsDebounced();
+    });
+
+    $('#oc_bridge_token').on('input', function () {
+        getSettings().bridgeToken = this.value.trim();
         saveSettingsDebounced();
     });
 
