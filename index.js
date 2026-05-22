@@ -2,6 +2,7 @@ import { getContext, extension_settings } from '../../../extensions.js';
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js';
 import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js';
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
+import { loadWorldInfo, createWorldInfoEntry, saveWorldInfo, deleteWorldInfoEntry } from '../../../../scripts/world-info.js';
 
 const MODULE_NAME = 'oc_workbench';
 
@@ -17,6 +18,10 @@ let selectMode = false;
 let selectedMsgIds = new Set();   // 选中的消息 mesid 集合
 let candidates = [];              // 当前候选记忆列表
 let currentCharacterIds = [];     // 当前对话角色在 Workbench 中的 ID
+
+// 上下文注入状态
+const OC_INJECT_BOOK = 'oc_inject_context'; // 专用世界书名
+let injectedUids = [];            // 当前注入的条目 UID 列表
 
 // ─── 工具函数 ─────────────────────────────────────────────────────────────────
 
@@ -422,6 +427,100 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
+// ─── 上下文注入 ───────────────────────────────────────────────────────────────
+
+async function clearInjectedContext() {
+    if (!injectedUids.length) return;
+    try {
+        const data = await loadWorldInfo(OC_INJECT_BOOK);
+        if (!data) return;
+        for (const uid of injectedUids) {
+            await deleteWorldInfoEntry(data, uid, { silent: true });
+        }
+        await saveWorldInfo(OC_INJECT_BOOK, data);
+    } catch (err) {
+        console.warn('[OC Workbench] clearInjectedContext error:', err);
+    }
+    injectedUids = [];
+}
+
+async function injectContext(characterIds) {
+    if (!characterIds.length) return;
+    try {
+        const params = characterIds.map(id => `characterIds=${encodeURIComponent(id)}`).join('&');
+        const res = await fetch(`${getBaseUrl()}/api/tavern/context/inject?${params}`, {
+            signal: AbortSignal.timeout(5000),
+        });
+        if (!res.ok) return;
+        const { data } = await res.json();
+        if (!data) return;
+
+        const { stateCards, recentSnippets } = data;
+        if (!stateCards.length && !recentSnippets.length) return;
+
+        // 获取或创建专用世界书
+        let wiData = await loadWorldInfo(OC_INJECT_BOOK);
+        if (!wiData) {
+            // 创建新世界书
+            await fetch('/api/worldinfo/edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: OC_INJECT_BOOK, data: { entries: {} } }),
+            });
+            wiData = { entries: {} };
+        }
+
+        injectedUids = [];
+
+        const allItems = [
+            ...stateCards.map(i => ({ ...i, label: '[状态卡]' })),
+            ...recentSnippets.map(i => ({ ...i, label: '[片段]' })),
+        ];
+
+        for (const item of allItems) {
+            const entry = createWorldInfoEntry(OC_INJECT_BOOK, wiData);
+            if (!entry) continue;
+            entry.comment = `oc_inject: ${item.title}`;
+            entry.content = item.title ? `${item.label} ${item.title}\n${item.content}` : item.content;
+            entry.constant = true;   // 始终激活，不需要关键词触发
+            entry.disable = false;
+            injectedUids.push(entry.uid);
+        }
+
+        await saveWorldInfo(OC_INJECT_BOOK, wiData);
+        console.log(`[OC Workbench] Injected ${injectedUids.length} context entries`);
+    } catch (err) {
+        console.warn('[OC Workbench] injectContext error:', err);
+    }
+}
+
+async function onChatChanged() {
+    // 先清除上一次注入
+    await clearInjectedContext();
+
+    const context = getContext();
+    const charName = context.name2;
+    if (!charName) return;
+
+    try {
+        const resolveRes = await fetch(`${getBaseUrl()}/api/tavern/characters/resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ names: [charName] }),
+            signal: AbortSignal.timeout(5000),
+        });
+        if (!resolveRes.ok) return;
+        const resolveData = await resolveRes.json();
+        if (resolveData.error || !resolveData.data) return;
+
+        const ids = Object.values(resolveData.data).map(c => c.id);
+        currentCharacterIds = ids;
+        await injectContext(ids);
+    } catch (err) {
+        console.warn('[OC Workbench] onChatChanged error:', err);
+    }
+}
+
 // ─── 初始化 ───────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -465,6 +564,9 @@ async function init() {
 
     // 启动时检查连接
     checkConnection();
+
+    // 监听对话切换，自动注入上下文
+    eventSource.on(event_types.CHAT_CHANGED, onChatChanged);
 }
 
 export { init };
